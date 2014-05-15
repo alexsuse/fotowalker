@@ -1,3 +1,5 @@
 ### FotoWalker
 
-Python utility to walk a directory tree,
+Python utility to walk a directory tree, and copy all
+the picture files to an alternative directory, nesting
+folders for year, month and day the file was last modified
