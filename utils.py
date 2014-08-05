@@ -1,5 +1,6 @@
 import os.path
 import os
+import sys
 from datetime import datetime
 from shutil import copyfileobj
 from hashlib import md5
@@ -38,16 +39,39 @@ def copyfile(src, dst):
         os.makedirs(basedir)
     else:
         # check for collision
-        if filehasher(src) == filehasher(dst):
-            print "file is already present,\n...ignoring."
+        if os.path.isfile(dst) and os.access(dst, os.R_OK):
+            if filehasher(src) == filehasher(dst):
+                print "Hash already present...\nignorIng."
+                return
+            else:
+                print "Date collision, renaming...\n"
+                
+                srcname,srcext = os.path.splitext(src)
+                dstname,dstext = os.path.splitext(dst)
+
+                newsrc = srcname + "_1" + srcext
+                newdst = dstname + "_2" + dstext
+                
+                copyhelper(src,newsrc)
+                copyhelper(dst,newdst)
+
+                return
+
         else:
-            #handle collision
-            pass
+            copyhelper(src,dst)
+        
+
+def copyhelper(src,dst):
     with open(src,"rb") as srcobj:
         with open(dst,"wb") as dstobj:
             copyfileobj(srcobj, dstobj)
+    
+
+def fotowalker(direct):
+    pass
+
 
 if __name__=="__main__":
-    src = 'test.png'
+    src = sys.argv[1]
     print newname(src)
     copyfile(src,newname(src))

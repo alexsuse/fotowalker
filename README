@@ -1,5 +1,11 @@
 ### FotoWalker
 
-Python utility to walk a directory tree, and copy all
-the picture files to an alternative directory, nesting
-folders for year, month and day the file was last modified
+Initially though of as an utility to walk directory trees,
+renaming files according to their metadata (date of
+creation), changed project after finding jhead, which did
+pretty much that.
+
+This project now walks through a directory, looking for
+duplicate files with the same md5 hash, and either prints
+out a list of duplicates, or deletes the duplicates,
+keeping the one with the lowest lexicographical name.
