@@ -4,6 +4,8 @@ import sys
 from datetime import datetime
 from shutil import copyfileobj
 from hashlib import md5
+import exifread
+import time
 
 def filehasher(src):
     """
@@ -14,6 +16,23 @@ def filehasher(src):
         buf = afile.read()
         hasher.update(buf)
     return hasher.hexdigest()
+
+DATE_TAG = 'EXIF DateTimeOriginal'
+
+def exif_time(src):
+    """
+    Gets unix time for the EXIF DateTimeOriginal value
+    of an image.
+    """
+    with open(src, "rb") as image:
+        try: 
+            time_string = exifread.process_file(image)[DATE_TAG].values 
+            image_time = time.strptime(time_string + "UTC",\
+                    "%Y:%m:%d %H:%M:%S%Z")
+            return time.mktime(image_time)
+        except:
+            return None
+
 
 def newname(src):
     """
