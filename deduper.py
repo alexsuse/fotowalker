@@ -22,41 +22,52 @@ def deduper(cdir, delete=False, debug=False):
         for f in files:
             fpath = os.path.join(cwd,f)
             time = exif_time(fpath)
-            if not time:
-                print "File: %s did not return a valid timestamp" % fpath
-                continue
-	    dic[time].append(fpath)
-	    if debug:
-		print "File %s obtained timestamp %d" %(fpath, time)
-	
-	uniques = []
-	duplicates = []
+            dic[time].append(fpath)
+            if debug:
+                print "File %s obtained timestamp %d" %(fpath, time)
     
+    uniques = []
+    duplicates = []
+   
+    # For each list of duplicates, disambiguate by hash if possible. 
     for key in dic.keys():
         if len(dic[key]) == 1:
-	    continue
-	file_hash = collections.defaultdict(list)
-	for file in dic[key]:
-	    cksum = filehasher(file)
-	    file_hash[cksum].append(file)
-	    for hash_values in file_hash.values():
-		uniques.append(hash_values[0])
-		if len(hash_values) == 1:
-		    continue
-		duplicates.extend(hash_values[1:])
-		if debug:
-		    print "Files below are duplicates:"
-		    for duplicate in hash_values:
-			print duplicate
+            # No duplicates
+            uniques.append(dic[key][0])
+            continue
+        file_hash = collections.defaultdict(list)
+        for file in dic[key]:
+            # For each file with the same timestamp, take the hash,
+            # and append it to the dict.
+            cksum = filehasher(file)
+            file_hash[cksum].append(file)
+        # Then we loop through the files, looking for duplicates.
+        for hash_key in file_hash.keys():
+            hash_values = file_hash[hash_key]
+            uniques.append(hash_values[0])
+            if len(hash_values) == 1:
+                continue
+            duplicates.extend(hash_values[1:])
+            if debug:
+                print "Files below are duplicates:"
+                for duplicate in hash_values:
+                    print duplicate
     return uniques, duplicates
 
 if __name__=='__main__':
     print __doc__
     try:
         cdir = sys.argv[1]
-	DELETE = '-d' in sys.argv[2:]
-	DEBUG = '-DEBUG' in sys.argv[2:]
+        DELETE = '-d' in sys.argv[2:]
+        DEBUG = '-DEBUG' in sys.argv[2:]
     except:
         print "incorrect usage, see doc"
 
-    deduper(cdir, delete=DELETE, debug=DEBUG)
+    uniques, dupes = deduper(cdir, delete=DELETE, debug=DEBUG)
+    print "These files are unique\n-----\n\n"
+    for unicat in uniques:
+        print unicat
+    
+    print "These files are duplicates\n-----\n\n"
+    for dupe in dupes:
+        print dupe

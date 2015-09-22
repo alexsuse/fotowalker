@@ -27,11 +27,12 @@ def exif_time(src):
     with open(src, "rb") as image:
         try: 
             time_string = exifread.process_file(image)[DATE_TAG].values 
-            image_time = time.strptime(time_string + "UTC",\
-                    "%Y:%m:%d %H:%M:%S%Z")
-            return time.mktime(image_time)
+            image_time = time.strptime(time_string + "UTC",
+									   "%Y:%m:%d %H:%M:%S%Z")
+            return int(time.mktime(image_time))
         except:
-            return None
+			# If we fail to read the exif_time, we fall back to the mtime.
+			return int(os.path.getmtime(src))
 
 
 def newname(src):
@@ -41,7 +42,7 @@ def newname(src):
     ex: YY_MM_DD_HH_mm_SS.png
     """
     filename, ext = os.path.splitext(src)
-    lm = datetime.fromtimestamp(os.path.getmtime(src))
+    lm = datetime.fromtimestamp(exif_time(src))
     name = "_".join( map(str, [lm.year, lm.month, lm.day, 
                                lm.hour, lm.minute, lm.second]))
     name = os.path.join(str(lm.year),str(lm.month),str(lm.day),name)
